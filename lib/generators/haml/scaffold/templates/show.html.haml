@@ -1,0 +1,61 @@
+= render 'header'
+
+.container
+  .content
+    .page-header
+      %h1 <%= singular_table_name.camelize %> Profile
+      %p#notice
+        %b= notice
+
+  %fieldset
+    #accordion
+      %div
+        %h3= link_to '基本情報', '#'
+        .clearfix
+<% for attribute in attributes -%>
+          %p
+            %b <%= attribute.human_name %>:
+            = @<%= singular_table_name %>.<%= attribute.name %>
+<% end -%>
+    #tabs
+      %ul
+<% (0..2).each do |i| -%>
+        %li#droppable-<%=i%>= link_to 'タブ<%=i+1%>', '#tabs-<%=i%>'
+<% end -%>
+<% (0..2).each do |i| -%>
+      #tabs-<%=i%>
+        %ul#sortable-<%=i%>.sortable
+          %li#item-<%=i%>.ui-state-default
+            .clearfix
+<% for attribute in attributes -%>
+              %p
+                %b <%= attribute.human_name %>:
+                = @<%= singular_table_name %>.<%= attribute.name %>
+<% end -%>
+<% end -%>
+  .actions
+    %a.btn.btn-primary{:href=>"#{edit_<%= singular_table_name %>_path(@<%= singular_table_name %>)}"} Edit
+    %a.btn{:href=>"#{<%= index_helper %>_path}"} Back
+    
+  #dummy
+      
+  = render 'footer'
+      
+:coffeescript
+  $('#accordion').accordion({ header: 'h3' })
+  
+  $('#tabs').tabs()
+  
+<% (0..2).each do |i| -%>
+  $('#sortable-<%=i%>').sortable({placeholder: 'ui-state-highlight'}).disableSelection()
+  $('#droppable-<%=i%>').droppable(
+    tolerance: 'pointer'
+    drop: (event, ui) ->
+      ui.draggable.clone().removeClass('ui-sortable-helper').removeAttr('style').appendTo('#tabs-<%=i%> ul#sortable-<%=i%>.sortable')
+      ui.draggable.empty()
+      $('li.ui-state-default:empty').remove()
+<% (0..2).each do |j| -%>
+      $('#dummy').load('/<%= singular_table_name %>/sort', $('#sortable-<%=j%>').sortable('serialize'))
+<% end -%>
+  )
+<% end -%>
